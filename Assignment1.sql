@@ -1,4 +1,10 @@
-use Edyoda;
+create database sqlAssignment;
+use sqlAssignment;
+
+--Create two tables: EmployeeDetails and EmployeeSalary.
+--Columns for EmployeeDetails: EmpId FullName ManagerId DateOfJoining City && Columns for EmployeeSalary: : EmpId Project Salary Variable.Insert some sample data into both tables
+
+-- create EmployeeDetails table
 CREATE TABLE EmployeeDetails (
   EmpId INT NOT NULL PRIMARY KEY,
   FullName VARCHAR(255) NOT NULL,
@@ -6,8 +12,17 @@ CREATE TABLE EmployeeDetails (
   DateOfJoining DATE,
   City VARCHAR(255)
 );
---Create two tables 
-CREATE TABLE EmployeeSalary (
+
+-- insert sample data into EmployeeDetails
+INSERT INTO EmployeeDetails (EmpId, FullName, ManagerId, DateOfJoining, City)
+VALUES (1, 'Manisha', NULL, '2020-01-01', 'Pune'),
+       (2, 'Vaibhav', 1, '2000-02-15', 'Mumbai'),
+       (3, 'Sweety', 1, '2012-02-15', 'Nashik'),
+       (4, 'Sangram', 1, '2017-03-05', 'Nashik');
+
+
+ -- create EmployeeDetails table      
+    CREATE TABLE EmployeeSalary (
   EmpId INT NOT NULL,
   Project VARCHAR(255) NOT NULL,
   Salary DECIMAL(10, 2) NOT NULL,
@@ -16,57 +31,69 @@ CREATE TABLE EmployeeSalary (
   FOREIGN KEY (EmpId) REFERENCES EmployeeDetails(EmpId)
 );
 
---1.SQL Query to fetch records that are present in one table but not in another table
-SELECT * FROM TableA
-WHERE NOT EXISTS (
-  SELECT *
-  FROM TableB
-  WHERE TableA.key = TableB.key
-);
+-- insert sample data into EmployeeSalary
+INSERT INTO EmployeeSalary (EmpId, Project, Salary, Variable)
+VALUES (1, 'Project A', 5000.00, 1000.00),
+       (1, 'Project B', 4500.00, 900.00),
+       (2, 'Project A', 5500.00, 1100.00),
+       (2, 'Project C', 6000.00, 1200.00),
+       (3, 'Project B', 4000.00, 800.00);
 
---2.SQL query to fetch all the employees who are not working on any project:
+--1.SQL Query to fetch records that are present in one table but not in another table.
 SELECT EmployeeDetails.*
 FROM EmployeeDetails
 LEFT JOIN EmployeeSalary ON EmployeeDetails.EmpId = EmployeeSalary.EmpId
 WHERE EmployeeSalary.EmpId IS NULL;
 
---3.SQL query to fetch all the Employees from EmployeeDetails who joined in the Year 2020:
-
+--2 SQL query to fetch all the employees who are not working on any project.
 SELECT *
 FROM EmployeeDetails
-WHERE YEAR(DateOfJoining) = 2020;
-
---4.Fetch all employees from EmployeeDetails who have a salary record in EmployeeSalary:
-SELECT EmployeeDetails.*
+WHERE EmpId NOT IN (
+  SELECT EmpId
+  FROM EmployeeSalary
+)
+--3.SQL query to fetch all the Employees from EmployeeDetails who joined in the Year 2020.
+SELECT *
 FROM EmployeeDetails
-INNER JOIN EmployeeSalary ON EmployeeDetails.EmpId = EmployeeSalary.EmpId;
+WHERE YEAR(DateOfJoining) = 2020
 
---5.Write an SQL query to fetch a project-wise count of employees:
-SELECT Project, COUNT(*) as EmployeeCount
+--4.Fetch all employees from EmployeeDetails who have a salary record in EmployeeSalary.
+SELECT ed.*
+FROM EmployeeDetails ed
+INNER JOIN EmployeeSalary es
+  ON ed.EmpId = es.EmpId
+
+--5.Write an SQL query to fetch a project-wise count of employees.
+SELECT Project, COUNT(EmpId) as NumEmployees
 FROM EmployeeSalary
-GROUP BY Project;
+GROUP BY Project
 
---6.Fetch employee names and salaries even if the salary value is not present for the employee:
-SELECT EmployeeDetails.FullName, EmployeeSalary.Salary
-FROM EmployeeDetails
-LEFT JOIN EmployeeSalary ON EmployeeDetails.EmpId = EmployeeSalary.EmpId;
+--6.Fetch employee names and salaries even if the salary value is not present for the employee.
+SELECT ed.FullName, es.Salary
+FROM EmployeeDetails ed
+LEFT JOIN EmployeeSalary es
+  ON ed.EmpId = es.EmpId
 
---7.Write an SQL query to fetch all the Employees who are also managers:
-SELECT e1.FullName as EmployeeName, e2.FullName as ManagerName
+--7.Write an SQL query to fetch all the Employees who are also managers.
+SELECT e1.*
 FROM EmployeeDetails e1
-INNER JOIN EmployeeDetails e2 ON e1.ManagerId = e2.EmpId;
-
---8.Write an SQL query to fetch duplicate records from EmployeeDetails:
-SELECT FullName, COUNT(*) as Count
+INNER JOIN EmployeeDetails e2
+  ON e1.EmpId = e2.ManagerId
+--8.Write an SQL query to fetch duplicate records from EmployeeDetails.
+SELECT FullName, ManagerId, DateOfJoining, City, COUNT(*)
 FROM EmployeeDetails
-GROUP BY FullName
-HAVING COUNT(*) > 1;
+GROUP BY FullName, ManagerId, DateOfJoining, City
+HAVING COUNT(*) > 1
 
---9.Write an SQL query to fetch only odd rows from the table:
-SELECT * FROM EmployeeDetails
-WHERE EmpId % 2 = 1;
+--9.Write an SQL query to fetch only odd rows from the table.
+SELECT *
+FROM (
+  SELECT *, ROW_NUMBER() OVER (ORDER BY EmpId) AS RowNum
+  FROM EmployeeDetails
+) AS T
+WHERE T.RowNum % 2 = 1
 
---10.Write a query to find the 3rd highest salary from a table without top or limit keyword:
+--10.Write a query to find the 3rd highest salary from a table without top or limit keyword.
 SELECT DISTINCT Salary
 FROM EmployeeSalary e1
 WHERE 3 = (
@@ -74,5 +101,3 @@ WHERE 3 = (
   FROM EmployeeSalary e2
   WHERE e2.Salary > e1.Salary
 );
-
-
